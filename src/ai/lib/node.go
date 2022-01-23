@@ -7,6 +7,11 @@ type Node struct {
 	visitCount int64
 }
 
+type Path struct {
+	Found bool
+	Path  []*Node
+}
+
 func (n *Node) Init(val int64) bool {
 
 	n.val = val

@@ -8,33 +8,33 @@ func main() {
 	n.AddChild(&n)
 }
 
-func dfs(searchVal int64, n *lib.Node) (bool, []*lib.Node) {
+func dfs(searchVal int64, n *lib.Node) *lib.Path {
 
 	v := n.GetVal()
+	var path *lib.Path
+
 	if v == searchVal {
 
 		tmp := make([]*lib.Node, 1)
 		tmp = append(tmp, n)
-		return true, tmp
+		return &lib.Path{Found: true, Path: tmp}
 	} else {
-
-		var found bool = false
-		var out []*lib.Node
 
 		for _, child := range n.GetChildren() {
 
-			found, out = dfs(searchVal, child)
-			if found == true {
+			path = dfs(searchVal, child)
+			if path.Found == true {
 				break
 			}
 		}
 
-		if found == true {
-			out = append(out, n)
+		if path.Found == true {
+			path.Path = append(path.Path, n)
+			return path
 		}
-
-		return true, out
 	}
 
-	return false, nil
+	path.Found = false
+
+	return path
 }
