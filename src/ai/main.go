@@ -11,14 +11,18 @@ import (
 
 func main() {
 
-	pathResultsCh := make(chan chan *lib.Path, lib.DEPTH_LIMIT)
+	n := lib.Node{}
+	n.AddChild(&n)
+	search(&n)
+}
+
+func search(n *lib.Node) {
+
+	pathResultsCh := make(chan chan *lib.Path, lib.DepthLimit)
 	var allPaths []*lib.Path
 	var actualPath *lib.Path
 
-	n := lib.Node{}
-	n.AddChild(&n)
-
-	go dfs(888, &n, 1, &lib.Path{Found: false}, pathResultsCh)
+	go dfs(888, n, 1, &lib.Path{Found: false}, pathResultsCh)
 
 	for result := range pathResultsCh {
 
@@ -38,7 +42,6 @@ func main() {
 
 		fmt.Printf("%v", path)
 	}
-
 }
 
 func dfs(searchVal int64, n *lib.Node, depth int64, tentativePath *lib.Path, pathResultsCh chan chan *lib.Path) {
@@ -59,7 +62,7 @@ func dfs(searchVal int64, n *lib.Node, depth int64, tentativePath *lib.Path, pat
 	pathResultsCh <- ch
 	ch <- tentativePath
 
-	if depth+1 < lib.DEPTH_LIMIT {
+	if depth+1 < lib.DepthLimit {
 
 		for _, child := range n.GetChildren() {
 

@@ -1,6 +1,6 @@
 package lib
 
-const DEPTH_LIMIT = 1024
+const DepthLimit = 1024
 
 type Node struct {
 	val        int64
