@@ -6,12 +6,12 @@ import (
 )
 
 /*
-DFS using channels and goroutines
- */
+	DFS using channels and goroutines
+*/
 
 func main() {
 
-	pathResultsCh := make(chan chan *lib.Path)
+	pathResultsCh := make(chan chan *lib.Path, lib.DEPTH_LIMIT)
 	var allPaths []*lib.Path
 	var actualPath *lib.Path
 
@@ -23,13 +23,15 @@ func main() {
 	for result := range pathResultsCh {
 
 		select {
+		case actualPath = <-result:
 
-			case actualPath = <-result:
+			if actualPath.Found == true {
 				allPaths = append(allPaths, actualPath)
-			default:
-				actualPath = nil
-		}
+			}
 
+		default:
+
+		}
 	}
 
 	for path := range allPaths {
@@ -42,45 +44,36 @@ func main() {
 func dfs(searchVal int64, n *lib.Node, depth int64, tentativePath *lib.Path, pathResultsCh chan chan *lib.Path) {
 
 	v := n.GetVal()
+	tentativePath.Path = append(tentativePath.Path, n)
+	ch := make(chan *lib.Path)
 
 	if v == searchVal {
-
-		tentativePath.Path = append(tentativePath.Path, n)
 		tentativePath.Found = true
-
-		/*
-			Create new chan and pass it back to the main go routine
-			then communicate back to the main goroutine over that chan.
-		*/
-		ch := make(chan *lib.Path)
-		pathResultsCh <-ch
-		ch <-tentativePath
-
 	}
 
 	numChildren := int64(len(n.GetChildren()))
-
 	if numChildren == 0 {
-
-		tentativePath.Path = append(tentativePath.Path, n)
 		tentativePath.Found = false
-		ch := make(chan *lib.Path)
-		pathResultsCh <-ch
-		ch <-tentativePath
-		return
 	}
 
-	for _, child := range n.GetChildren() {
+	pathResultsCh <- ch
+	ch <- tentativePath
 
-		if numChildren >= depth:
-			go dfs(searchVal, child, depth+1, tentativePath, pathResultsCh)
+	if depth+1 < lib.DEPTH_LIMIT {
 
+		for _, child := range n.GetChildren() {
+
+			tentativePath.Found = false
+			tentativePath.Path = append(tentativePath.Path, n)
+
+			if numChildren >= depth/2 {
+				go dfs(searchVal, child, depth+1, tentativePath, pathResultsCh)
+			} else {
+				dfs(searchVal, child, depth+1, tentativePath, pathResultsCh)
+			}
+		}
 	}
 
-	if depth == 1 {
-
-		close
-	}
-
+	close(ch)
 	return
 }

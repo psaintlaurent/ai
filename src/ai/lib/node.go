@@ -1,5 +1,7 @@
 package lib
 
+const DEPTH_LIMIT = 1024
+
 type Node struct {
 	val        int64
 	visited    bool
@@ -8,8 +10,9 @@ type Node struct {
 }
 
 type Path struct {
-	Found bool
-	Path  []*Node
+	Found      bool
+	DepthLimit int64
+	Path       []*Node
 }
 
 func (n *Node) Init(val int64) bool {
