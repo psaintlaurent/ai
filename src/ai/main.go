@@ -5,9 +5,9 @@ import (
 	"fmt"
 )
 
-"""
-	DFS using channels and goroutines
-"""
+/*
+DFS using channels and goroutines
+ */
 
 func main() {
 
@@ -45,10 +45,13 @@ func dfs(searchVal int64, n *lib.Node, depth int64, tentativePath *lib.Path, pat
 
 	if v == searchVal {
 
-
 		tentativePath.Path = append(tentativePath.Path, n)
 		tentativePath.Found = true
 
+		/*
+			Create new chan and pass it back to the main go routine
+			then communicate back to the main goroutine over that chan.
+		*/
 		ch := make(chan *lib.Path)
 		pathResultsCh <-ch
 		ch <-tentativePath
@@ -61,14 +64,16 @@ func dfs(searchVal int64, n *lib.Node, depth int64, tentativePath *lib.Path, pat
 
 		tentativePath.Path = append(tentativePath.Path, n)
 		tentativePath.Found = false
-		pathResultsCh <- tentativePath
+		ch := make(chan *lib.Path)
+		pathResultsCh <-ch
+		ch <-tentativePath
 		return
 	}
 
 	for _, child := range n.GetChildren() {
 
 		if numChildren >= depth:
-			go dfs(searchVal, child, depth+1, )
+			go dfs(searchVal, child, depth+1, tentativePath, pathResultsCh)
 
 	}
 
