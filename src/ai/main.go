@@ -1,40 +1,81 @@
 package main
 
-import "ai/src/ai/lib"
+import (
+	"ai/src/ai/lib"
+	"fmt"
+)
+
+"""
+	DFS using channels and goroutines
+"""
 
 func main() {
 
+	pathResultsCh := make(chan chan *lib.Path)
+	var allPaths []*lib.Path
+	var actualPath *lib.Path
+
 	n := lib.Node{}
 	n.AddChild(&n)
+
+	go dfs(888, &n, 1, &lib.Path{Found: false}, pathResultsCh)
+
+	for result := range pathResultsCh {
+
+		select {
+
+			case actualPath = <-result:
+				allPaths = append(allPaths, actualPath)
+			default:
+				actualPath = nil
+		}
+
+	}
+
+	for path := range allPaths {
+
+		fmt.Printf("%v", path)
+	}
+
 }
 
-func dfs(searchVal int64, n *lib.Node) *lib.Path {
+func dfs(searchVal int64, n *lib.Node, depth int64, tentativePath *lib.Path, pathResultsCh chan chan *lib.Path) {
 
 	v := n.GetVal()
-	var path *lib.Path
 
 	if v == searchVal {
 
-		tmp := make([]*lib.Node, 1)
-		tmp = append(tmp, n)
-		return &lib.Path{Found: true, Path: tmp}
-	} else {
 
-		for _, child := range n.GetChildren() {
+		tentativePath.Path = append(tentativePath.Path, n)
+		tentativePath.Found = true
 
-			path = dfs(searchVal, child)
-			if path.Found == true {
-				break
-			}
-		}
+		ch := make(chan *lib.Path)
+		pathResultsCh <-ch
+		ch <-tentativePath
 
-		if path.Found == true {
-			path.Path = append(path.Path, n)
-			return path
-		}
 	}
 
-	path.Found = false
+	numChildren := int64(len(n.GetChildren()))
 
-	return path
+	if numChildren == 0 {
+
+		tentativePath.Path = append(tentativePath.Path, n)
+		tentativePath.Found = false
+		pathResultsCh <- tentativePath
+		return
+	}
+
+	for _, child := range n.GetChildren() {
+
+		if numChildren >= depth:
+			go dfs(searchVal, child, depth+1, )
+
+	}
+
+	if depth == 1 {
+
+		close
+	}
+
+	return
 }

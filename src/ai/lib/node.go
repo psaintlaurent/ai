@@ -31,29 +31,29 @@ func (n *Node) GetVal() int64 {
 	return n.val
 }
 
-func (n *Node) AddChild(childNode *Node) int {
+func (n *Node) AddChild(childNode *Node) int64 {
 
 	n.children = append(n.children, childNode)
-	return len(n.children) - 1
+	return int64(len(n.children) - 1)
 }
 
-func (n *Node) RemoveChild(id int) bool {
+func (n *Node) RemoveChild(id *int64) bool {
 
 	ok := false
-	if len(n.children) > id {
-		n.children = append(n.children[0:id], n.children[id+1:]...)
+	if int64(len(n.children)) > *id {
+		n.children = append(n.children[0:*id], n.children[*id+1:]...)
 		ok = true
 	}
 
 	return ok
 }
 
-func (n *Node) Child(id *int) (bool, *Node) {
+func (n *Node) Child(id *int64) (bool, *Node) {
 
 	ok := false
 	var out *Node = nil
 
-	if len(n.children) > *id {
+	if int64(len(n.children)) > *id {
 		out = n.children[*id]
 	}
 
