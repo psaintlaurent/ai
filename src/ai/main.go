@@ -12,26 +12,25 @@ import (
 func main() {
 
 	n := lib.Node{}
+	n.Init(0)
 	n.AddChild(&n)
 	search(&n)
 }
 
-func search(n *lib.Node) {
+func search(n *lib.Node) []*lib.Path {
 
-	pathResultsCh := make(chan chan *lib.Path, lib.DepthLimit)
+	pathResultsCh := make(chan *lib.Path, lib.DepthLimit)
 	var allPaths []*lib.Path
 	var actualPath *lib.Path
 
-	go dfs(888, n, 1, &lib.Path{Found: false}, pathResultsCh)
+	go dfs(888, *n, 1, &lib.Path{Found: false}, pathResultsCh)
 
 	for result := range pathResultsCh {
 
 		select {
-		case actualPath = <-result:
+		case result.Found:
 
-			if actualPath.Found == true {
-				allPaths = append(allPaths, actualPath)
-			}
+			allPaths = append(allPaths, actualPath)
 
 		default:
 
@@ -42,13 +41,14 @@ func search(n *lib.Node) {
 
 		fmt.Printf("%v", path)
 	}
+
+	return allPaths
 }
 
-func dfs(searchVal int64, n *lib.Node, depth int64, tentativePath *lib.Path, pathResultsCh chan chan *lib.Path) {
+func dfs(searchVal int64, n lib.Node, depth int64, tentativePath *lib.Path, pathResultsCh chan *lib.Path) {
 
 	v := n.GetVal()
-	tentativePath.Path = append(tentativePath.Path, n)
-	ch := make(chan *lib.Path)
+	tentativePath.Path = append(tentativePath.Path, &n)
 
 	if v == searchVal {
 		tentativePath.Found = true
@@ -59,24 +59,22 @@ func dfs(searchVal int64, n *lib.Node, depth int64, tentativePath *lib.Path, pat
 		tentativePath.Found = false
 	}
 
-	pathResultsCh <- ch
-	ch <- tentativePath
+	pathResultsCh <- tentativePath
 
 	if depth+1 < lib.DepthLimit {
 
 		for _, child := range n.GetChildren() {
 
 			tentativePath.Found = false
-			tentativePath.Path = append(tentativePath.Path, n)
+			tentativePath.Path = append(tentativePath.Path, &n)
 
 			if numChildren >= depth/2 {
-				go dfs(searchVal, child, depth+1, tentativePath, pathResultsCh)
+				go dfs(searchVal, *child, depth+1, tentativePath, pathResultsCh)
 			} else {
-				dfs(searchVal, child, depth+1, tentativePath, pathResultsCh)
+				dfs(searchVal, *child, depth+1, tentativePath, pathResultsCh)
 			}
 		}
 	}
 
-	close(ch)
 	return
 }
