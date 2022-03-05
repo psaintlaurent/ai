@@ -25,15 +25,14 @@ func search(n *lib.Node) []*lib.Path {
 
 	go dfs(888, *n, 1, &lib.Path{Found: false}, pathResultsCh)
 
-	for result := range pathResultsCh {
+	for {
 
-		select {
-		case result.Found:
-
+		result, ok := <-pathResultsCh
+		if !ok {
+			break
+		}
+		if result.Found {
 			allPaths = append(allPaths, actualPath)
-
-		default:
-
 		}
 	}
 
