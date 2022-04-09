@@ -3,10 +3,10 @@ package lib
 const DepthLimit = 1024
 
 type Node struct {
-	Val        int64
+	Val        int
 	Visited    bool
 	Children   []*Node
-	VisitCount int64
+	VisitCount int
 }
 
 type Path struct {
@@ -15,7 +15,7 @@ type Path struct {
 	Path       []*Node
 }
 
-func (n *Node) Init(val int64) bool {
+func (n *Node) Init(val int) bool {
 
 	n = &Node{Val: val, Visited: false, VisitCount: 0, Children: []*Node{}}
 	return true
@@ -26,15 +26,15 @@ func (n *Node) GetChildren() []*Node {
 	return n.Children
 }
 
-func (n *Node) GetVal() int64 {
+func (n *Node) GetVal() int {
 
 	return n.Val
 }
 
-func (n *Node) AddChild(childNode *Node) int64 {
+func (n *Node) AddChild(childNode *Node) int {
 
 	n.Children = append(n.Children, childNode)
-	return int64(len(n.Children) - 1)
+	return len(n.Children) - 1
 }
 
 func (n *Node) RemoveChild(id *int64) bool {

@@ -17,26 +17,15 @@ func main() {
 	search(&n)
 }
 
-func search(n *lib.Node) []*lib.Path {
+func search(n *lib.Node) *[]*lib.Path {
 
-	pathResultsCh := make(chan *lib.Path, lib.DepthLimit)
-	var allPaths []*lib.Path
-	var actualPath *lib.Path
+	var allPaths *[]*lib.Path
+	tmp := make([]*lib.Path, 1)
+	allPaths = &tmp
 
-	go dfs(888, *n, 1, &lib.Path{Found: false}, pathResultsCh)
+	allPaths = dfs(888, *n, 1, &lib.Path{Found: false}, allPaths)
 
-	for {
-
-		result, ok := <-pathResultsCh
-		if !ok {
-			break
-		}
-		if result.Found {
-			allPaths = append(allPaths, actualPath)
-		}
-	}
-
-	for path := range allPaths {
+	for path := range *allPaths {
 
 		fmt.Printf("%v", path)
 	}
@@ -44,36 +33,27 @@ func search(n *lib.Node) []*lib.Path {
 	return allPaths
 }
 
-func dfs(searchVal int64, n lib.Node, depth int64, tentativePath *lib.Path, pathResultsCh chan *lib.Path) {
+func dfs(searchVal int, n lib.Node, depth int, tentativePath *lib.Path, pathResultsCh *[]*lib.Path) *[]*lib.Path {
 
 	v := n.GetVal()
 	tentativePath.Path = append(tentativePath.Path, &n)
 
+	// Append tentative path to successful path results
 	if v == searchVal {
 		tentativePath.Found = true
+		*pathResultsCh = append(*pathResultsCh, tentativePath)
 	}
 
-	numChildren := int64(len(n.GetChildren()))
-	if numChildren == 0 {
-		tentativePath.Found = false
-	}
-
-	pathResultsCh <- tentativePath
-
-	if depth+1 < lib.DepthLimit {
+	tentativePath.Found = false
+	if int64(len(n.GetChildren())) > 0 && depth+1 < lib.DepthLimit {
 
 		for _, child := range n.GetChildren() {
 
-			tentativePath.Found = false
-			tentativePath.Path = append(tentativePath.Path, &n)
-
-			if numChildren >= depth/2 {
-				go dfs(searchVal, *child, depth+1, tentativePath, pathResultsCh)
-			} else {
-				dfs(searchVal, *child, depth+1, tentativePath, pathResultsCh)
-			}
+			tmp := *tentativePath
+			tmp.Path = append(tmp.Path, &n)
+			dfs(searchVal, *child, depth+1, &tmp, pathResultsCh)
 		}
 	}
 
-	return
+	return pathResultsCh
 }
